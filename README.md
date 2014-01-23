@@ -19,7 +19,7 @@ Usage
 
 To use the translatable type you need to register it as a service:
 
-```
+```xml
 <service id="acme_demo.form.type.translatable_field" class="Tonydub\Component\Form\Extension\Type\TranslatedFieldType">
         <argument>acme_demo_translatable_field</argument>
         <argument>%acme_demo.translations.locale%</argument>
@@ -30,7 +30,7 @@ To use the translatable type you need to register it as a service:
 
 You can use then use the type with the form builder:
 
-```
+```php
 public function buildForm(FormBuilderInterface $builder, array $options)
 {
     $builder
