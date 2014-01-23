@@ -1,0 +1,25 @@
+{
+    "name": "tonydub/form-translation",
+    "type": "library",
+    "description": "Translate your doctrine objects easily with a custom field for Symfony2 form component.",
+    "keywords": ["form"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Tony Dubreil",
+            "email": "tony.dubreil@niji.fr"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.11",
+        "symfony/form": ">=2.3",
+        "symfony/options-resolver": ">=2.3",
+        "symfony/property-access": ">=2.3",
+        "doctrine/common": "v1.1"
+    },
+    "autoload": {
+        "psr-0": { "Tonydub\\Component\\Form\\": "" }
+    },
+    "target-dir": "Tonydub/Component/Form",
+    "minimum-stability": "dev"
+}

@@ -1,0 +1,16 @@
+{% block acme_demo_translatable_field_widget %}
+    {% spaceless %}
+        {% for child in form.children %}
+            <div class="form-group{% if child.vars.errors %} errors{% endif %}">
+                <div class="input-group input-translation">
+                    <span class="input-group-addon"><strong>{{ child.vars.label }}</strong></span>
+                    {% set type = child.vars.type|default('text') %}
+                    {% if not child.rendered %}
+                        {{ form_widget(child) }}
+                    {% endif %}
+                </div>
+                {{ form_errors(child) }}
+            </div>
+        {% endfor %}
+    {% endspaceless %}
+{% endblock acme_demo_translatable_field_widget %}
