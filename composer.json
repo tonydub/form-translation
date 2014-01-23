@@ -15,7 +15,7 @@
         "symfony/form": ">=2.3",
         "symfony/options-resolver": ">=2.3",
         "symfony/property-access": ">=2.3",
-        "doctrine/common": "v1.1"
+        "doctrine/collections": "v1.1"
     },
     "autoload": {
         "psr-0": { "Tonydub\\Component\\Form\\": "" }
