@@ -9,6 +9,7 @@ use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormEvent;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
@@ -18,7 +19,7 @@ class TranslatedFieldSubscriber implements EventSubscriberInterface
     private $options;
     private $accessor;
 
-    public function __construct(FormFactoryInterface $factory, array $options = [])
+    public function __construct(FormFactoryInterface $factory, array $options = array())
     {
         $this->factory = $factory;
 
@@ -76,24 +77,14 @@ class TranslatedFieldSubscriber implements EventSubscriberInterface
      */
     public function onPreSetData(FormEvent $event)
     {
-        //
         $translations = $event->getData();
         $form = $event->getForm();
         $entity = $form->getParent()->getData();
         $fieldTranslated = $form->getName();
 
-        // During form creation setData() is called with null as an argument
-        // by the FormBuilder constructor. We're only concerned with when
-        // setData is called with an actual Entity object in it (whether new,
-        // or fetched with Doctrine). This if statement let's us skip right
-        // over the null condition.
-        if (null === $translations) {
-            return;
-        }
-
         foreach ($this->getTranslationsByField($entity, $fieldTranslated, $translations) as $binded) {
 
-            $content = $binded['locale'] == $this->options['default_locale'] ?
+            $content = $binded['locale'] == $this->options['default_locale'] && null !== $entity ?
                 $this->accessor->getValue($entity, $fieldTranslated) :
                 $binded['translation']->getContent()
             ;
@@ -125,13 +116,15 @@ class TranslatedFieldSubscriber implements EventSubscriberInterface
      */
     public function onPostBind(FormEvent $event)
     {
+        $form = $event->getForm();
+        $translations = $form->getData();
+        if (is_array($translations)) {
+            $translations = new ArrayCollection($translations);
+        }
+        $entity = $form->getParent()->getData();
+        $fieldTranslated = $form->getName();
 
-       $form = $event->getForm();
-       $translations = $form->getData();
-       $entity = $form->getParent()->getData();
-       $fieldTranslated = $form->getName();
-
-       foreach ($this->getTranslationsByField($entity, $fieldTranslated, $translations) as $binded) {
+        foreach ($this->getTranslationsByField($entity, $fieldTranslated, $translations) as $binded) {
             $content = $form->get($binded['fieldName'])->getData();
 
             $translation = $binded['translation'];
@@ -150,24 +143,24 @@ class TranslatedFieldSubscriber implements EventSubscriberInterface
 
            // Test if its new
            if ($translation->getId()) {
-               // Delete the translation if its empty
-               if(
-                   empty($content)
-                   &&
-                   $this->options['remove_empty_translation']
-               )
-               {
-                   $translations->removeElement($translation);
-               }
-           } elseif (!empty($content)) {
-               //add it to entity
-               $entity->addTranslation($translation);
+                // Delete the translation if its empty
+                if(
+                    empty($content)
+                    &&
+                    $this->options['remove_empty_translation']
+                )
+                {
+                    $translations->removeElement($translation);
+                }
+            } elseif (!empty($content)) {
+                //add it to entity
+                $entity->addTranslation($translation);
 
-               if (! $translations->contains($translation)) {
-                   $translations->add($translation);
-               }
-           }
-       }
+                if (! $translations->contains($translation)) {
+                    $translations->add($translation);
+                }
+            }
+        }
     }
 
     public function onSubmit(FormEvent $event)
@@ -193,10 +186,10 @@ class TranslatedFieldSubscriber implements EventSubscriberInterface
     /**
      * @param  object          $entity
      * @param  string          $field
-     * @param  string          $data
+     * @param  Collection      $data
      * @return ArrayCollection
      */
-    private function getTranslationsByField($entity, $field, $data)
+    private function getTranslationsByField($entity, $field, Collection $data = null)
     {
         //Small helper function to extract all Personal Translation
         //from the Entity for the field we are interested in
@@ -204,9 +197,11 @@ class TranslatedFieldSubscriber implements EventSubscriberInterface
         $collection = new ArrayCollection;
         $availableTranslations = new ArrayCollection;
 
-        foreach ($data as $translation) {
-            if ($translation->getField() == $field) {
-                $availableTranslations[$translation->getLocale()] = $translation;
+        if ($data) {
+            foreach ($data as $translation) {
+                if ($translation->getField() == $field) {
+                    $availableTranslations[$translation->getLocale()] = $translation;
+                }
             }
         }
 
